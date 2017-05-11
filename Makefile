@@ -11,7 +11,8 @@ INCLUDES = -I./
 
 OBJECTS = tz1000_l218_main.o \
 	  Serial.o \
-	  test_utils.o 
+	  test_utils.o \
+	  SerialLink.o
 
 %.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) $(INCLUDES) -Wall -std=gnu99 -g -c $< -o $@

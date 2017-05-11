@@ -9,6 +9,7 @@ extern "C" {
 #include <arpa/inet.h>
 
 #include "Serial.h"
+#include "SerialLink.h"
 
 
 

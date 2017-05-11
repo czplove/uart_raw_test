@@ -6,6 +6,9 @@
 #include "test_utils.h"
 
 
+int verbosity = 11; 
+
+
 
 
 // return 1 if quit command is received, otherwise return 0
@@ -70,6 +73,49 @@ int input_cmd_handler(void)
 
 void *pvSerialReaderThread(void *p)	//-一个全新的线程处理函数
 {
+    tsSL_Message  sMessage;
+    tsSL_Msg_Status *psMsgStatus;
+
+    while (1)	//-周期性的读数据,直到有为止
+    {
+        /* Initialise buffer */
+        memset(&sMessage, 0, sizeof(tsSL_Message));
+        /* Initialise length to large value so CRC is skipped if end received */
+        sMessage.u16Length = 0xFFFF;
+
+        printf("\n\tread date start.\n");
+
+        if (eSL_ReadMessage(&sMessage.u16Type, &sMessage.u16Length, SL_MAX_MESSAGE_LENGTH, sMessage.au8Message) == E_SL_OK)
+        {//-下面的处理是针对接收到的完好正确报文进行的
+            
+            if (verbosity >= 10)	//-调试信息的输出控制
+            {
+                char acBuffer[4096];
+                int iPosition = 0, i;
+                
+                iPosition = sprintf(&acBuffer[iPosition], "Node->Host 0x%04X (Length % 4d)", sMessage.u16Type, sMessage.u16Length);
+                for (i = 0; i < sMessage.u16Length; i++)
+                {
+                    iPosition += sprintf(&acBuffer[iPosition], " 0x%02X", sMessage.au8Message[i]);
+                }
+                printf( "\n\t%s", acBuffer);	//-\t 的意思是 横向跳到下一制表符位置
+            }
+
+            printf("\n\tread date.\n");
+            
+            fflush(stdout);
+        }
+        else
+        {
+            printf("\n\t***eSL_ReadMessage failed.\n");
+        }
+
+
+    }
+
+    printf("Exit reader thread\n");
 
 	return NULL;
 }
+
+
