@@ -59,6 +59,7 @@ static void print_usage_exit(char *argv[])
 int main(int argc, char *argv[])
 {
 	int ret, i32tmp;
+    void *res;
 	
 	// get cmd line paras
 	int8_t opt;
@@ -117,6 +118,39 @@ int main(int argc, char *argv[])
 	    printf("Create serial reader thread failed !\n");
 	    return -2;
 	}
+
+    
+    // main input cmd handle loop
+    printf("\n");
+    //while (1)	//-主线程里面干的事情在这
+    {
+        printf("$ Input test command(type help for cmd usage)>");
+        //if (input_cmd_handler() != 0)
+        {
+        //    break;
+        }
+    }
+
+    //-下面都是程序结束后的清理工作了
+    /* Clean up */    
+	ret = pthread_cancel(gSerial_readerTh);
+	if (ret != 0)
+	{
+	  printf("Cancel serial reader thread failed !\n");
+	  return 1;
+	}
+	
+	ret = pthread_join(gSerial_readerTh, &res);	//-等待一个线程的结束,线程间同步的操作。
+	if (ret != 0)
+	{
+	  printf( "join serial reader failed !\n");
+	  return 1;
+	}
+
+    close(gSerial_fd);
+
+//finish:
+    printf("Test exit, bye.\n");
 
 	return 0;
 }
