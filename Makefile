@@ -3,12 +3,15 @@
 #
 #
 
+LDFLAGS += -lpthread -lm
+
 TARGET = tz1000_l218_main
 
 INCLUDES = -I./
 
 OBJECTS = tz1000_l218_main.o \
-	      Serial.o 
+	  Serial.o \
+	  test_utils.o 
 
 %.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) $(INCLUDES) -Wall -std=gnu99 -g -c $< -o $@

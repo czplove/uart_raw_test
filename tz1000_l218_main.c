@@ -11,6 +11,7 @@
 #include <stdint.h>
 
 #include "Serial.h"
+#include "test_utils.h"
 
 #define VER_INFO "1.3.3"
 
@@ -108,6 +109,14 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    //-init_global_vars();
+
+    ret = pthread_create(&gSerial_readerTh, NULL, pvSerialReaderThread, NULL);	//-这里引入了一个线程,是一个重要的编程思想.
+	if (ret != 0)
+	{
+	    printf("Create serial reader thread failed !\n");
+	    return -2;
+	}
 
 	return 0;
 }
