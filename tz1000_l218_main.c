@@ -122,12 +122,12 @@ int main(int argc, char *argv[])
     
     // main input cmd handle loop
     printf("\n");
-    //while (1)	//-主线程里面干的事情在这
+    while (1)	//-主线程里面干的事情在这
     {
         printf("$ Input test command(type help for cmd usage)>");
-        //if (input_cmd_handler() != 0)
+        if (input_cmd_handler() != 0)
         {
-        //    break;
+            break;
         }
     }
 
