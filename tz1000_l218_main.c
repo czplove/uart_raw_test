@@ -10,10 +10,15 @@
 #include <getopt.h>
 #include <stdint.h>
 
+#include "Serial.h"
+
 #define VER_INFO "1.3.3"
 
 static char *pcSerialDevice = "/dev/ttyUSB0";
 static uint32_t u32BaudRate = 115200;
+
+static int gSerial_fd = 0;
+static pthread_t gSerial_readerTh;
 
 static struct option long_options[] =
 {
@@ -97,6 +102,12 @@ int main(int argc, char *argv[])
 				print_usage_exit(argv);
 		}
 	}
+
+    if (eSerial_Init(pcSerialDevice, u32BaudRate, &gSerial_fd) != E_SERIAL_OK)	//-初始化串口
+    {
+        return -1;
+    }
+
 
 	return 0;
 }
