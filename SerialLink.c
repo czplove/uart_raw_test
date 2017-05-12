@@ -156,6 +156,7 @@ static bool bSL_RxByte(uint8_t *pu8Data);
 /****************************************************************************/
 
 extern int verbosity;
+extern int AUTO_SEND_FLAG;
 
 /****************************************************************************/
 /***        Local Variables                                               ***/
@@ -179,14 +180,113 @@ teSL_Status eSL_ReadMessage(uint16_t *pu16Type, uint16_t *pu16Length, uint16_t u
     static uint16_t u16Bytes;
     static bool bInEsc = FALSE;
 
+    u16Bytes = 0;	
+
     while(bSL_RxByte(&u8Data))	//-这里是目前整个程序唯一读一个字节的地方
     {
         DBG_vPrintf(DBG_SERIALLINK_COMMS, "0x%02x\n", u8Data);
-        
+        //-printf("char is:%c\n",u8Data);	//-打印字符
+	    switch(u8Data)
+	    {
+	    case 0x0d:
+            if(u16Bytes != 0)
+            {
+                *pu16Length = u16Bytes;
+                return E_SL_OK;
+            }    
+	        
+	        break;
+
+	    case 0x0a:
+	        if(u16Bytes != 0)
+            {
+                *pu16Length = u16Bytes;
+                return E_SL_OK;
+            }
+
+	        break;
+
+        case '>':
+	        //-if(u16Bytes != 0)
+            {
+                AUTO_SEND_FLAG = 1;
+                pu8Message[0] = u8Data;
+                *pu16Length = 1;
+                return E_SL_OK;
+            }
+
+	        break;
+
+	    default:
+            pu8Message[u16Bytes++] = u8Data;
+	        break;
+
+	    }
     }
     
     return E_SL_NOMESSAGE;
 }
+
+/****************************************************************************
+*
+* NAME: vSL_WriteRawMessage
+*
+* DESCRIPTION:
+*
+* PARAMETERS: Name        RW  Usage
+*
+* RETURNS:
+* void
+****************************************************************************/
+teSL_Status eSL_WriteMessage(uint16_t u16Type, uint16_t u16Length, uint8_t *pu8Data)	//-实现数据的发送,会自动对有效数据组织成最终报文
+{
+    int n;
+    //-uint8_t u8CRC;
+
+    //-u8CRC = u8SL_CalculateCRC(u16Type, u16Length, pu8Data);	//-计算CRC数值,知道结果即可不需要深究
+
+    //printf("\neSL_WriteMessage (0x%04X, %d, %02x)\n", u16Type, u16Length, u8CRC);
+
+    if (verbosity >= 10)	//-log信息输出的控制
+    {
+        char acBuffer[4096];
+        int iPosition = 0, i;
+        
+        iPosition = sprintf(&acBuffer[iPosition], "PC->L218 0x%04X (Length % 4d)", u16Type, u16Length);
+        for (i = 0; i < u16Length; i++)
+        {
+            //-iPosition += sprintf(&acBuffer[iPosition], " 0x%02X ", pu8Data[i]);
+            iPosition += sprintf(&acBuffer[iPosition], "%c", pu8Data[i]);
+        }
+        printf( "%s\n", acBuffer);
+    }
+    //-这里开始对原始数据进行发送,转译不用应用层考虑
+    /* Send start character */
+    //-if (iSL_TxByte(TRUE, SL_START_CHAR) < 0) return E_SL_ERROR;
+
+    /* Send message type */
+    //-if (iSL_TxByte(FALSE, (u16Type >> 8) & 0xff) < 0) return E_SL_ERROR;
+    //-if (iSL_TxByte(FALSE, (u16Type >> 0) & 0xff) < 0) return E_SL_ERROR;
+
+    /* Send message length */
+    //-if (iSL_TxByte(FALSE, (u16Length >> 8) & 0xff) < 0) return E_SL_ERROR;
+    //-if (iSL_TxByte(FALSE, (u16Length >> 0) & 0xff) < 0) return E_SL_ERROR;
+
+    /* Send message checksum */
+    //-if (iSL_TxByte(FALSE, u8CRC) < 0) return E_SL_ERROR;
+
+    /* Send message payload */  
+    for(n = 0; n < u16Length; n++)
+    {       
+        if (iSL_TxByte(TRUE, pu8Data[n]) < 0) return E_SL_ERROR;
+    }
+
+    /* Send end character */
+    if (iSL_TxByte(TRUE, SL_END_CHAR) < 0) return E_SL_ERROR;
+
+    return E_SL_OK;
+}
+
 
 
 

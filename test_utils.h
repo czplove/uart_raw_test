@@ -16,6 +16,7 @@ extern "C" {
 
 extern int input_cmd_handler(void);
 extern void *pvSerialReaderThread(void *p);
+extern void *pvATAutoSendThread(void *p);
 
 #if defined __cplusplus
 }
