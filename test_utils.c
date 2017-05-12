@@ -8,13 +8,18 @@
 #define HELP_CMD  "help"
 #define AT_CMD  "AT"
 #define ATAUTO_CMD  "ATAUTO"
+#define RESULT_CMD  "result"
+
+
+#define SEND_OK_RES  "send ok"
 
 static tsSL_Msg_Status gTxMsgStatus;
 static pthread_mutex_t gSeialMsgSendMutex;
 static pthread_mutex_t gTxAckListMutex;
 static pthread_mutex_t gDevsListMutex;
 
-
+int send_num = 0;
+int send_receive_res = 0;
 
 int verbosity = 11; 
 int AUTO_SEND_FLAG = 0;
@@ -145,6 +150,10 @@ int input_cmd_handler(void)
 	        return -2;
 	    }
     }
+    else if (strcmp(cmd_str, RESULT_CMD) == 0)
+    {
+        printf("\tsend_num=%d\nsend_receive_res=%d\n", send_num,send_receive_res);
+    }
     else if (strcmp(cmd_str, "") != 0)
     {
         printf("\tUnkown cmd.\n");
@@ -185,6 +194,10 @@ void *pvSerialReaderThread(void *p)	//-一个全新的线程处理函数
             }
 
             //-printf("\n\tread date.\n");
+            if (strcmp(sMessage.au8Message, SEND_OK_RES) == 0)
+            {
+                send_receive_res++;
+            }
             
             fflush(stdout);
         }
@@ -207,20 +220,27 @@ void *pvATAutoSendThread(void *p)	//-一个全新的线程处理函数
     int i;
 
     for(i=0;i<1024;i++)
-        inputBuf[i] = ' ';
+        inputBuf[i] = '@';
 
     while (1)	//-周期性的读数据,直到有为止
     {
         AUTO_SEND_FLAG = 0;
+        for(i=0;i<1024;i++)
+            inputBuf[i] = '@';
         eSL_SendMessage(E_SL_MSG_RESET, 14, "AT+CIPSEND=900", NULL);
+        send_num++;
         
         i = 0;
         while(AUTO_SEND_FLAG == 0)
         {
-            inputBuf[i] = i;
+            inputBuf[i] = 'x';
             i++;
             if(i > 1023)
+            {
                 i = 0;
+                break;
+            }
+            IOT_MSLEEP(1);
         }
         eSL_SendMessage(E_SL_MSG_RESET, 900, &inputBuf[0], NULL);
 
