@@ -157,6 +157,7 @@ static bool bSL_RxByte(uint8_t *pu8Data);
 
 extern int verbosity;
 extern int AUTO_SEND_FLAG;
+extern int send_dayu_num;
 
 /****************************************************************************/
 /***        Local Variables                                               ***/
@@ -209,6 +210,7 @@ teSL_Status eSL_ReadMessage(uint16_t *pu16Type, uint16_t *pu16Length, uint16_t u
         case '>':
 	        //-if(u16Bytes != 0)
             {
+                send_dayu_num++;
                 AUTO_SEND_FLAG = 1;
                 pu8Message[0] = u8Data;
                 *pu16Length = 1;
